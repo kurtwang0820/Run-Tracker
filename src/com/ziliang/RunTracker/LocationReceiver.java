@@ -7,14 +7,16 @@ import android.location.Location;
 import android.location.LocationManager;
 
 /**
+ * used to receive the broadcasted intent
  * Created by Kurt on 4/24/2015.
  */
 public class LocationReceiver extends BroadcastReceiver {
-    private static final String TAG="LocationReceiver";
     @Override
     public void onReceive(Context context, Intent intent) {
-        Location location=(Location)intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
+        //get a recent updated location
+        Location location=intent.getParcelableExtra(LocationManager.KEY_LOCATION_CHANGED);
         if(location!=null){
+            //record name of service provider and location data
             onLocationReceived(context,location);
             return;
         }

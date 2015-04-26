@@ -1,5 +1,7 @@
 package com.ziliang.RunTracker;
 
+import android.util.Log;
+
 import java.util.Date;
 
 /**
@@ -7,7 +9,9 @@ import java.util.Date;
  */
 public class Run {
     private Date startDate;
+    private long mId;
     public Run(){
+        mId=-1;
         startDate=new Date();
     }
     public Date getStartDate(){
@@ -24,5 +28,11 @@ public class Run {
         int minutes=((durationSeconds-seconds)/60)%60;
         int hours=(durationSeconds-(minutes*60)-seconds)/3600;
         return String.format("%02d:%02d:%02d",hours,minutes,seconds);
+    }
+    public long getId(){
+        return mId;
+    }
+    public void setId(long id){
+        mId=id;
     }
 }
