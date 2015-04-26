@@ -29,7 +29,13 @@ public class RunListFragment extends ListFragment {
         RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), cursor);
         setListAdapter(adapter);
     }
-
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View v = super.onCreateView(inflater, container, savedInstanceState);
+        ListView tasksList = (ListView) v.findViewById(android.R.id.list); //get ListView
+        registerForContextMenu(tasksList);
+        return v;
+    }
     @Override
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         getActivity().getMenuInflater().inflate(R.menu.run_list_item_context, menu);
@@ -37,20 +43,18 @@ public class RunListFragment extends ListFragment {
 
     @Override
     public boolean onContextItemSelected(MenuItem item) {
+        AdapterView.AdapterContextMenuInfo info = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
+        int position = info.position;
         RunCursorAdapter adapter = (RunCursorAdapter) getListAdapter();
         RunManager runManager = RunManager.get(getActivity());
         switch (item.getItemId()) {
             case R.id.menu_item_delete_crime:
-                for (int i = adapter.getCount() - 1; i >= 0; i--) {
-                    if (getListView().isItemChecked(i)) {
-                        RunDatabaseHelper.RunCursor runCursor = (RunDatabaseHelper.RunCursor) adapter.getItem(i);
-                        long runId = runCursor.getRun().getId();
-                        if(runManager.isTrackingRun(runCursor.getRun())){
-                            runManager.stopRun();
-                        }
-                        runManager.removeRun(runId);
-                    }
+                RunDatabaseHelper.RunCursor runCursor = (RunDatabaseHelper.RunCursor) adapter.getItem(position);
+                long runId = runCursor.getRun().getId();
+                if(runManager.isTrackingRun(runCursor.getRun())){
+                    runManager.stopRun();
                 }
+                runManager.removeRun(runId);
                 cursor.requery();
                 adapter.notifyDataSetChanged();
                 return true;
