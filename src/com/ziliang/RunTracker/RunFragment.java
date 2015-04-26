@@ -1,9 +1,11 @@
 package com.ziliang.RunTracker;
 
 import android.app.Fragment;
+import android.app.LoaderManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.content.Loader;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,8 +20,10 @@ import android.widget.Toast;
 /**
  * Created by Kurt on 4/24/2015.
  */
-public class RunFragment extends Fragment {
+public class RunFragment extends Fragment{
     private static final String ARG_RUN_ID = "RUN_ID";
+    private static final int LOAD_LOCATION = 1;
+    private static final int LOAD_RUN = 0;
     private Button mStartButton, mStopButton;
     private TextView mStartedTextView, mLatitudeTextView, mLongitudeTextView, mAltitudeTextView, mDurationTextView;
     private RunManager runManager;
@@ -44,6 +48,25 @@ public class RunFragment extends Fragment {
         }
     };
 
+    private class LocationLoaderCallbacks implements LoaderManager.LoaderCallbacks<Location> {
+
+        @Override
+        public Loader<Location> onCreateLoader(int id, Bundle args) {
+            return new LastLocationLoader(getActivity(), args.getLong(ARG_RUN_ID));
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Location> loader, Location data) {
+            lastLocation = data;
+            updateUI();
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Location> loader) {
+            //do nothing
+        }
+    }
+
     public static RunFragment newInstance(long runId) {
         Bundle args = new Bundle();
         args.putLong(ARG_RUN_ID, runId);
@@ -61,8 +84,9 @@ public class RunFragment extends Fragment {
         if (args != null) {
             long runId = args.getLong(ARG_RUN_ID, -1);
             if (runId != -1) {
-                run = runManager.getRun(runId);
-                lastLocation=runManager.getLastLocationForRun(runId);
+                LoaderManager loaderManager = getLoaderManager();
+                loaderManager.initLoader(LOAD_RUN, args, new RunLoaderCallbacks());
+                loaderManager.initLoader(LOAD_LOCATION, args, new LocationLoaderCallbacks());
             }
         }
     }
@@ -105,7 +129,6 @@ public class RunFragment extends Fragment {
         super.onStart();
         getActivity().registerReceiver(locationReceiver, new IntentFilter(RunManager.ACTION_LOCATION));
     }
-
     @Override
     public void onStop() {
         getActivity().unregisterReceiver(locationReceiver);
@@ -114,7 +137,7 @@ public class RunFragment extends Fragment {
 
     private void updateUI() {
         boolean started = runManager.isTrackingRun();
-        boolean trackingThisRun=runManager.isTrackingRun(run);
+        boolean trackingThisRun = runManager.isTrackingRun(run);
         if (run != null) {
             mStartedTextView.setText(run.getStartDate().toString());
         }
@@ -127,6 +150,24 @@ public class RunFragment extends Fragment {
         }
         mDurationTextView.setText(Run.formatDuration(durationSeconds));
         mStartButton.setEnabled(!started);
-        mStopButton.setEnabled(started&&trackingThisRun);
+        mStopButton.setEnabled(started && trackingThisRun);
+    }
+
+    private class RunLoaderCallbacks implements LoaderManager.LoaderCallbacks<Run> {
+        @Override
+        public Loader<Run> onCreateLoader(int id, Bundle args) {
+            return new RunLoader(getActivity(), args.getLong(ARG_RUN_ID));
+        }
+
+        @Override
+        public void onLoadFinished(Loader<Run> loader, Run data) {
+            run = data;
+            updateUI();
+        }
+
+        @Override
+        public void onLoaderReset(Loader<Run> loader) {
+            //do nothing
+        }
     }
 }

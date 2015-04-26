@@ -1,8 +1,10 @@
 package com.ziliang.RunTracker;
 
 import android.app.ListFragment;
+import android.app.LoaderManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -15,19 +17,40 @@ import android.widget.TextView;
 /**
  * Created by Kurt on 4/25/2015.
  */
-public class RunListFragment extends ListFragment {
+public class RunListFragment extends ListFragment implements LoaderManager.LoaderCallbacks<Cursor>{
     private static final int REQUEST_NEW_RUN = 0;
-    private RunDatabaseHelper.RunCursor cursor;
+//    private RunDatabaseHelper.RunCursor cursor;
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        //you only ever load the runs, so assume this is the case
+        return new RunListCursorLoader(getActivity());
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        //create an adapter to point at this cursor
+        RunCursorAdapter adapter=new RunCursorAdapter(getActivity(),(RunDatabaseHelper.RunCursor)data);
+        setListAdapter(adapter);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        //stop using the cursor(via the adapter)
+        setListAdapter(null);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        //query the list of runs
-        cursor = RunManager.get(getActivity()).queryRuns();
-        //create an adapter to point at this cursor
-        RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), cursor);
-        setListAdapter(adapter);
+//        //query the list of runs
+//        cursor = RunManager.get(getActivity()).queryRuns();
+//        //create an adapter to point at this cursor
+//        RunCursorAdapter adapter = new RunCursorAdapter(getActivity(), cursor);
+//        setListAdapter(adapter);
+        //initialize the loader to load the list of runs
+        getLoaderManager().initLoader(0,null,this);
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -55,7 +78,8 @@ public class RunListFragment extends ListFragment {
                     runManager.stopRun();
                 }
                 runManager.removeRun(runId);
-                cursor.requery();
+//                cursor.requery();
+                getLoaderManager().restartLoader(0,null,this);
                 adapter.notifyDataSetChanged();
                 return true;
         }
@@ -83,8 +107,10 @@ public class RunListFragment extends ListFragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (REQUEST_NEW_RUN == requestCode) {
-            cursor.requery();
-            ((RunCursorAdapter) getListAdapter()).notifyDataSetChanged();
+//            cursor.requery();
+//            ((RunCursorAdapter) getListAdapter()).notifyDataSetChanged();
+            //restart the loader to get any new run avaliable
+            getLoaderManager().restartLoader(0,null,this);
         }
     }
 
@@ -97,15 +123,15 @@ public class RunListFragment extends ListFragment {
 
     @Override
     public void onResume() {
-        ((RunCursorAdapter) getListAdapter()).notifyDataSetChanged();
+        getLoaderManager().restartLoader(0,null,this);
         super.onResume();
     }
 
-    @Override
-    public void onDestroy() {
-        cursor.close();
-        super.onDestroy();
-    }
+//    @Override
+//    public void onDestroy() {
+//        cursor.close();
+//        super.onDestroy();
+//    }
 
     private static class RunCursorAdapter extends CursorAdapter {
         private RunDatabaseHelper.RunCursor runCursor;
@@ -134,6 +160,16 @@ public class RunListFragment extends ListFragment {
             TextView startDateTextView = (TextView) view;
             String cellText = context.getString(R.string.cell_text, run.getStartDate());
             startDateTextView.setText(cellText);
+        }
+    }
+
+    private static class RunListCursorLoader extends SQLiteCursorLoader{
+        public RunListCursorLoader(Context context){
+            super(context);
+        }
+        @Override
+        protected Cursor loadCursor() {
+            return RunManager.get(getContext()).queryRuns();
         }
     }
 }
