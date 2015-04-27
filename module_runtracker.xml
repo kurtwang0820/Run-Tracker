@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="module_runtracker" default="compile.module.runtracker">
+  <dirname property="module.runtracker.basedir" file="${ant.file.module_runtracker}"/>
+  
+  <property name="module.jdk.home.runtracker" value="${project.jdk.home}"/>
+  <property name="module.jdk.bin.runtracker" value="${project.jdk.bin}"/>
+  <property name="module.jdk.classpath.runtracker" value="${project.jdk.classpath}"/>
+  
+  <property name="compiler.args.runtracker" value="-encoding GBK -source 1.6 ${compiler.args}"/>
+  
+  <property name="runtracker.output.dir" value="${module.runtracker.basedir}/out/production/RunTracker"/>
+  <property name="runtracker.testoutput.dir" value="${module.runtracker.basedir}/out/test/RunTracker"/>
+  
+  <path id="runtracker.module.bootclasspath">
+    <!-- Paths to be included in compilation bootclasspath -->
+  </path>
+  
+  <path id="runtracker.module.production.classpath">
+    <pathelement location="${google-play-services_lib.output.dir}"/>
+    <path refid="${module.jdk.classpath.runtracker}"/>
+    <pathelement location="${basedir}/../../../../../cs software/android/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar"/>
+  </path>
+  
+  <path id="runtracker.runtime.production.module.classpath">
+    <path refid="google-play-services_lib.runtime.production.module.classpath"/>
+    <pathelement location="${runtracker.output.dir}"/>
+    <pathelement location="${basedir}/../../../../../cs software/android/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar"/>
+  </path>
+  
+  <path id="runtracker.module.classpath">
+    <pathelement location="${google-play-services_lib.testoutput.dir}"/>
+    <pathelement location="${google-play-services_lib.output.dir}"/>
+    <path refid="${module.jdk.classpath.runtracker}"/>
+    <pathelement location="${runtracker.output.dir}"/>
+    <pathelement location="${basedir}/../../../../../cs software/android/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar"/>
+  </path>
+  
+  <path id="runtracker.runtime.module.classpath">
+    <path refid="google-play-services_lib.runtime.module.classpath"/>
+    <pathelement location="${runtracker.testoutput.dir}"/>
+    <pathelement location="${runtracker.output.dir}"/>
+    <pathelement location="${basedir}/../../../../../cs software/android/extras/google/google_play_services/libproject/google-play-services_lib/libs/google-play-services.jar"/>
+  </path>
+  
+  
+  <patternset id="excluded.from.module.runtracker">
+    <patternset refid="ignored.files"/>
+  </patternset>
+  
+  <patternset id="excluded.from.compilation.runtracker">
+    <patternset refid="excluded.from.module.runtracker"/>
+  </patternset>
+  
+  <path id="runtracker.module.sourcepath">
+    <dirset dir="${module.runtracker.basedir}">
+      <include name="src"/>
+      <include name="gen"/>
+    </dirset>
+  </path>
+  
+  
+  <target name="compile.module.runtracker" depends="compile.module.runtracker.production,compile.module.runtracker.tests" description="Compile module RunTracker"/>
+  
+  <target name="compile.module.runtracker.production" depends="register.custom.compilers,compile.module.google-play-services_lib" description="Compile module RunTracker; production classes">
+    <mkdir dir="${runtracker.output.dir}"/>
+    <javac2 destdir="${runtracker.output.dir}" debug="${compiler.debug}" nowarn="${compiler.generate.no.warnings}" memorymaximumsize="${compiler.max.memory}" fork="true" executable="${module.jdk.bin.runtracker}/javac">
+      <compilerarg line="${compiler.args.runtracker}"/>
+      <bootclasspath refid="runtracker.module.bootclasspath"/>
+      <classpath refid="runtracker.module.production.classpath"/>
+      <src refid="runtracker.module.sourcepath"/>
+      <patternset refid="excluded.from.compilation.runtracker"/>
+    </javac2>
+    
+    <copy todir="${runtracker.output.dir}">
+      <fileset dir="${module.runtracker.basedir}/src">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+      <fileset dir="${module.runtracker.basedir}/gen">
+        <patternset refid="compiler.resources"/>
+        <type type="file"/>
+      </fileset>
+    </copy>
+  </target>
+  
+  <target name="compile.module.runtracker.tests" depends="register.custom.compilers,compile.module.runtracker.production" description="compile module RunTracker; test classes" unless="skip.tests"/>
+  
+  <target name="clean.module.runtracker" description="cleanup module">
+    <delete dir="${runtracker.output.dir}"/>
+    <delete dir="${runtracker.testoutput.dir}"/>
+  </target>
+</project>

@@ -113,6 +113,9 @@ public class RunManager {
         cursor.close();
         return location;
     }
+    public RunDatabaseHelper.LocationCursor queryLocationsForRun(long runId){
+        return helper.queryLocationsForRun(runId);
+    }
     private void broadcastLocation(Location location) {
         Intent broadcast = new Intent(ACTION_LOCATION);
         broadcast.putExtra(LocationManager.KEY_LOCATION_CHANGED, location);
